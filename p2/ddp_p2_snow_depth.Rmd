@@ -1,0 +1,91 @@
+---
+title: "Snow depth and SWE"
+output: ioslides_presentation
+date: '2022-05-31'
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(plotly)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+- In this short presentation we will look a few relationships between time, snow depth, and snow water equivalent (SWE) at various SNOTEL stations in Northwest Montana. 
+
+- The SNOTEL stations we'll look at are Badger Pass, Emery Creek, and Pike Creek. 
+
+- The data we use in this presentation was scraped from [this website](https://looper.avalanche.state.co.us/fac/), which aggregates snow related weather data for Northwest Montana. 
+
+- The data we use was recorded at 6AM every day from October 1, 2021 until May 31, 2022. 
+
+## Snow depth
+
+```{r, loadData}
+df <- read.csv("~/Desktop/Course 9 - Developing data products/DDP_projects/p2/flathead.csv") %>%
+  filter( str_detect(Station, "Badger|Emery|Pike")) %>%
+  select(c(2:4, 18, 19)) %>%
+  mutate(date = as.Date(date, "%Y-%m-%d")) %>%
+  na.omit()
+```
+
+First we look at snow depth over time, colored by station.
+
+```{r, fig.align='center'}
+p0 <- plot_ly(df, x = ~date, y = ~SnoHt, color = ~Station, 
+              type = "scatter", mode = "line",
+              text = ~paste("Elev: ", Elev, " ft.",
+                            "<br>Date: ", date,
+                            "<br>Depth: ", SnoHt, " in."),
+              hoverinfo = "text") %>%
+  layout( title = "Snow Depth: Oct '21 thru May '22",
+          xaxis = list(title = ""),
+          yaxis = list(title = "Snow Depth (in)"))
+p0
+```
+
+## SWE over time, by station
+
+Next we look at SWE over time, colored by station.
+
+```{r, fig.align='center'}
+p1 <- plot_ly(df, x = ~date, y = ~SWE, color = ~Station, 
+              type = "scatter", mode = "line",
+              text = ~paste("Elev: ", Elev, " ft.",
+                            "<br>Date: ", date,
+                            "<br>SWE: ", SWE, " in."),
+              hoverinfo = "text") %>%
+  layout( title = "SWE: Oct '21 thru May '22",
+          xaxis = list(title = ""),
+          yaxis = list(title = "SWE (in)"))
+p1
+```
+
+## SWE vs snow depth
+
+Finally we look at SWE vs snow depth, by station
+
+```{r, fig.align='center'}
+p2 <- plot_ly(df, x = ~SnoHt, y = ~SWE, color = ~Station, 
+              type = "scatter", mode = "markers",
+              text = ~paste("Elev: ", Elev, " ft.",
+                            "<br>Date: ", date,
+                            "<br>Depth: ", SnoHt, 
+                            "<br>SWE: ", SWE 
+                            ), 
+              hoverinfo = "text") %>%
+  layout(title = "SWE vs Depth: Oct 2021 thru May 2022",
+         xaxis = list(title = 'Snow Depth (in)'),
+         yaxis = list(title = 'SWE (in)'))
+p2
+
+```
+
+## Some minor conclusions
+
+- Badger pass, the station with the highest elevation, has the highest snow depth and SWE for the entire season. 
+
+- Interestingly, Emery Creek is lower in elevation, but consistently has higher SWE and snow depth than Pike Creek. This may be because of aspect or station sun exposure.
+
+- After each station hits its max SWE, the snow becomes more settled and dense, ie the same SWE corresponds to a more shallow snow pack. This explains the "loops" in each station's SWE vs Depth plot.  
