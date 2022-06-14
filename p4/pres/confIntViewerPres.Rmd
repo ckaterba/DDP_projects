@@ -1,0 +1,118 @@
+---
+title: "Visualizing confidence intervals"
+author: "Charles Katerba"
+date: '2022-06-14'
+output: slidy_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
+set.seed(1128)
+```
+
+## The problem:
+
+In an introductory statistic course, students are introduced primarily to hypothesis testing and confidence intervals. Both tools for inference present their own problems, but students seem to struggle with interpreting confidence intervals and confidence levels in particular. 
+
+Some common misinterpretations of a 95\% confidence interval for proportions are: 
+
+- There is a 95\% chance that the true population proportion falls within my confidence interval.
+
+- The true proportion will fall within the interval 95\% of the time. 
+
+The problem, of course, with both of these interpretations is that they are making claims about a specific sample, whereas the confidence level is a statement about *all* samples. 
+
+As a reminder, a 95\% confidence level means that 95\% of the confidence intervals calculated from *all* random samples will capture the true population parameter. 
+
+## Towards a solution
+
+- In the past, getting this point across has been difficult because the process of random sampling is tedious and time consuming. 
+
+- With computation becoming cheap and accessible, we can quite easily generate tons of random samples. 
+
+- This means we can quite easily generate a ton of confidence intervals.  
+
+- Moreover, if we sample from a population with a known proportion, we can demonstrate exactly how often these confidence intervals capture the true proportion. 
+
+- The next slides demonstrate one method for doing this using `R`. 
+
+## Code for a visualizing 100 CIs
+
+The code below generates 100 random samples of 50 measurements from a binomial distribution with \(p = .4\), then calculates lower and upper bounds for the corresponding 95\% confidence intervals.
+
+```{r, echo = TRUE}
+numInt <-100
+n <- 50
+p <- .4
+confLevel <- .95
+zCrit <- qnorm((1- confLevel)/2, lower.tail = FALSE)
+data <- tibble( sample =c(), pHat = c(), SE = c())
+for(i in 1:numInt){
+  temp <- tibble( sample = c(i), pHat = c(sum(rbinom(n,1, p)/n)))
+  data <- bind_rows(data, temp)
+}
+data <- data %>% mutate(
+        SE = sqrt(pHat*(1-pHat)/n),
+        lower = pHat - zCrit*SE, 
+        upper = pHat + zCrit*SE,
+        capt_p = (p >= lower & p <= upper)) %>%
+        pivot_longer(lower:upper, names_to = "bound", values_to = "value")
+```
+
+The next slide shows what `data` looks like. 
+
+## Peaking at `data`
+
+```{r, echo = TRUE}
+head(data, 10)
+```
+
+## Visualizing our confidence intervals
+
+The code below will generate our plot to visualize 100 confidence intervals simultaneously. 
+
+```{r, echo = TRUE}
+pTitle <- paste0(numInt, " randomly generated ", confLevel*100, "% CI(s)")
+pSubTitle <- paste0("n = ", n, " and the true pop. proportion is p = ", p )
+ciPlot <- ggplot(data, aes(x= value, 
+                  y = sample, 
+                  group = sample,
+                  color = capt_p)) +
+          geom_point(size = 2) +
+          geom_line() +
+          geom_vline( xintercept = p, color = "darkgray") +
+          xlim(c(0,1)) +
+          labs(title = pTitle, subtitle = pSubTitle) +
+          xlab("interval range") + ylab("sample #")
+```
+
+## Visualizing our confidence intervals, con't
+
+```{r}
+ciPlot
+```
+
+## Our plot
+
+- The plot on the previous slide shows that 6 out of 100 CIs did **not** capture the true population proportion. 
+
+- In other words, 94% of the CIs did capture the true proportion! This is pretty good, but of course not exactly 95% because did not calculate all possible random samples. 
+
+- What would happen if we generated another 100 samples? 
+
+## The Pitch
+
+I propose an app that allows the user to specify:
+
+- the true population proportion
+
+- the sample size
+
+- the confidence level
+
+- the number of confidence intervals to generate
+
+That outputs a plot like the one we generated in this slide deck.  
+
+I believe such an app would be beneficial to many introductory statistics students for understanding what the confidence level of a confidence interval actually means. 

@@ -1,0 +1,13 @@
+name: confIntervalViewer
+title: confIntervalViewer
+username:
+account: ckaterba
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6490032
+bundleId: 6007974
+url: https://ckaterba.shinyapps.io/confIntervalViewer/
+when: 1655240512.93326
+lastSyncTime: 1655240512.93327
+asMultiple: FALSE
+asStatic: FALSE
