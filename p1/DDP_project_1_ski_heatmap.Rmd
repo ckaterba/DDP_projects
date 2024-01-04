@@ -62,9 +62,9 @@ df <- rbind_pages(df_list)
 ski <- df %>% 
   filter(str_detect(type, "Ski|Snow")) %>%
   select(upload_id, type, map.summary_polyline) %>%
-  na.omit()
-
-
+  na.omit() %>%
+  filter(map.summary_polyline != '')
+  
 ```
 
 ## Heat map
@@ -78,7 +78,7 @@ winterSports
 colors = c("yellow", "blue", "green", "red")
 #create basemap
 map <- leaflet() %>% 
-  addProviderTiles(providers$Stamen.Terrain) %>%
+  addProviderTiles(providers$Stadia.StamenTerrain) %>%
   fitBounds(lng1 = -114.6, lng2 = -113.3, 
             lat1 = 48.1, lat2 = 48.6, )
 
